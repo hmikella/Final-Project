@@ -1,0 +1,46 @@
+import requests
+from bs4 import BeautifulSoup
+import sqlite3
+
+def create_table():
+    conn = sqlite3.connect('pages.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS pages 
+                 (id INTEGER PRIMARY KEY, url TEXT)''')
+    conn.commit()
+    conn.close()
+
+def add_page(url):
+    conn = sqlite3.connect('pages.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO pages (url) VALUES (?)", (url,))
+    conn.commit()
+    conn.close()
+
+def search_and_store(keyword):
+    # Список URL-адресов для поиска
+    urls = [
+        "https://example.com/page1",
+        "https://example.com/page2",
+    ]
+
+    for url in urls:
+        response = requests.get(url)
+        if response.status_code == 200:
+            page_content = response.text
+            if keyword in page_content:
+                add_page(url)
+                print(f"Ссылка на страницу {url} добавлена в базу данных.")
+            else:
+                print(f"На странице {url} не найдена информация по запросу '{keyword}'.")
+        else:
+            print(f"Не удалось получить доступ к странице {url}.")
+
+def main():
+    create_table()
+
+    keyword = input("Введите информацию для поиска: ")
+    search_and_store(keyword)
+
+if __name__ == "__main__":
+    main()
